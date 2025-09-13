@@ -8,27 +8,27 @@
 ## Execution Flow (main)
 ```
 1. Parse user description from Input
-   ’ Feature description provided: NatureReserves.co.za platform overview
+   ï¿½ Feature description provided: NatureReserves.co.za platform overview
 2. Extract key concepts from description
-   ’ Identified: 3 user types (guests/visitors, property owners, governing bodies), 3 platform components, monetization model
+   ï¿½ Identified: 3 user types (guests/visitors, property owners, governing bodies), 3 platform components, monetization model
 3. For each unclear aspect:
-   ’ Marked with [NEEDS CLARIFICATION: specific question]
+   ï¿½ Marked with [NEEDS CLARIFICATION: specific question]
 4. Fill User Scenarios & Testing section
-   ’ Created scenarios for each user type and key interactions
+   ï¿½ Created scenarios for each user type and key interactions
 5. Generate Functional Requirements
-   ’ 25+ requirements covering core platform functionality
-   ’ Marked ambiguous requirements for clarification
+   ï¿½ 25+ requirements covering core platform functionality
+   ï¿½ Marked ambiguous requirements for clarification
 6. Identify Key Entities (data involved)
-   ’ Identified: Reserve, Property, User, Review, Booking entities
+   ï¿½ Identified: Reserve, Property, User, Review, Booking entities
 7. Run Review Checklist
-   ’ Several [NEEDS CLARIFICATION] markers present - spec has uncertainties
-   ’ No implementation details included
+   ï¿½ Several [NEEDS CLARIFICATION] markers present - spec has uncertainties
+   ï¿½ No implementation details included
 8. Return: SUCCESS (spec ready for planning with clarifications)
 ```
 
 ---
 
-## ¡ Quick Guidelines
+## ï¿½ Quick Guidelines
 -  Focus on WHAT users need and WHY
 - L Avoid HOW to implement (no tech stack, APIs, code structure)
 - =e Written for business stakeholders, not developers
@@ -40,7 +40,7 @@
 ### Primary User Stories
 
 **Guest/Visitor Journey:**
-A tourist planning a visit to South Africa wants to find nature reserves that match their interests (e.g., bird watching, hiking). They search the directory, read reviews from other visitors, view photos and activity information, and use provided links to make bookings directly with properties or contact reserves.
+A tourist planning a visit to South Africa or a South African resident wants to find nature reserves that match their interests (e.g., bird watching, hiking). They search the directory, read reviews from other visitors, view photos and activity information, and use provided links to make bookings directly with properties or contact reserves.
 
 **Property Owner Journey:**
 An owner of a lodge, guesthouse, or rental accommodation within or near a nature reserve wants to market their property alongside reserve activities. They create listings highlighting their accommodation, showcase package deals combining lodging and activities, and track leads generated through the platform.
