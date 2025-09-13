@@ -1,0 +1,381 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Province {
+  WESTERN_CAPE
+  EASTERN_CAPE
+  NORTHERN_CAPE
+  FREE_STATE
+  KWAZULU_NATAL
+  NORTH_WEST
+  GAUTENG
+  MPUMALANGA
+  LIMPOPO
+}
+
+enum OperatingStatus {
+  OPEN
+  CLOSED
+  SEASONAL
+  RESTRICTED
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  FLAGGED
+}
+
+enum PropertyType {
+  LODGE
+  GUESTHOUSE
+  CAMPING
+  GLAMPING
+  RENTAL
+  OTHER
+}
+
+enum PriceRange {
+  BUDGET
+  MID_RANGE
+  LUXURY
+  ULTRA_LUXURY
+}
+
+enum UserType {
+  GUEST
+  PROPERTY_OWNER
+  GOVERNING_BODY
+  ADMIN
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
+enum AISentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  MIXED
+}
+
+enum ActivityCategory {
+  WILDLIFE_VIEWING
+  HIKING
+  WATER_SPORTS
+  CULTURAL
+  ADVENTURE
+  PHOTOGRAPHY
+}
+
+enum FacilityCategory {
+  ACCOMMODATION
+  DINING
+  RECREATION
+  SERVICES
+  ACCESSIBILITY
+}
+
+enum DataSource {
+  DATA_FOR_SEO
+  MANUAL
+  GOOGLE_PLACES
+}
+
+enum ScrapingStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+}
+
+enum PlacementType {
+  BANNER
+  SPONSORED_LISTING
+  FEATURED_CONTENT
+}
+
+model User {
+  id                   String        @id @default(cuid())
+  email                String        @unique
+  emailVerified        Boolean       @default(false) @map("email_verified")
+  name                 String?
+  userType             UserType      @default(GUEST) @map("user_type")
+  profileImageUrl      String?       @map("profile_image_url")
+  organizationName     String?       @map("organization_name")
+  phone                String?
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+  lastLoginAt          DateTime?     @map("last_login_at")
+  isActive             Boolean       @default(true) @map("is_active")
+  emailNotifications   Boolean       @default(true) @map("email_notifications")
+  marketingEmails      Boolean       @default(false) @map("marketing_emails")
+
+  // Relationships
+  properties           Property[]
+  reserves             Reserve[]
+  reviews              Review[]
+  accounts             Account[]
+  sessions             Session[]
+
+  @@map("users")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Reserve {
+  id                 String             @id @default(cuid())
+  name               String
+  slug               String             @unique
+  description        String?
+  location           Json?
+  address            String?
+  province           Province?
+  contactEmail       String?            @map("contact_email")
+  contactPhone       String?            @map("contact_phone")
+  websiteUrl         String?            @map("website_url")
+  operatingStatus    OperatingStatus    @default(OPEN) @map("operating_status")
+  establishedDate    DateTime?          @map("established_date")
+  areaSizeHectares   Int?               @map("area_size_hectares")
+  governingBodyId    String?            @map("governing_body_id")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  scrapedAt          DateTime?          @map("scraped_at")
+  verificationStatus VerificationStatus @default(UNVERIFIED) @map("verification_status")
+  averageRating      Decimal?           @map("average_rating")
+  reviewCount        Int                @default(0) @map("review_count")
+  isPremium          Boolean            @default(false) @map("is_premium")
+
+  // Relationships
+  governingBody      User?              @relation(fields: [governingBodyId], references: [id])
+  properties         Property[]
+  reviews            Review[]
+  activities         ReserveActivity[]
+  facilities         ReserveFacility[]
+  scrapedData        ScrapedData[]
+
+  @@index([name])
+  @@index([province])
+  @@index([verificationStatus])
+  @@index([isPremium])
+  @@map("reserves")
+}
+
+model Property {
+  id                   String             @id @default(cuid())
+  name                 String
+  slug                 String             @unique
+  description          String?
+  propertyType         PropertyType       @map("property_type")
+  reserveId            String?            @map("reserve_id")
+  ownerId              String             @map("owner_id")
+  location             Json?
+  address              String?
+  contactEmail         String             @map("contact_email")
+  contactPhone         String             @map("contact_phone")
+  websiteUrl           String?            @map("website_url")
+  bookingUrl           String?            @map("booking_url")
+  priceRange           PriceRange?        @map("price_range")
+  capacityGuests       Int?               @map("capacity_guests")
+  capacityUnits        Int?               @map("capacity_units")
+  checkInTime          String?            @map("check_in_time")
+  checkOutTime         String?            @map("check_out_time")
+  minimumStayNights    Int                @default(1) @map("minimum_stay_nights")
+  cancellationPolicy   String?            @map("cancellation_policy")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  isActive             Boolean            @default(true) @map("is_active")
+  isPremium            Boolean            @default(false) @map("is_premium")
+  verificationStatus   VerificationStatus @default(UNVERIFIED) @map("verification_status")
+  averageRating        Decimal?           @map("average_rating")
+  reviewCount          Int                @default(0) @map("review_count")
+
+  // Relationships
+  reserve              Reserve?           @relation(fields: [reserveId], references: [id])
+  owner                User               @relation(fields: [ownerId], references: [id])
+  reviews              Review[]
+  amenities            PropertyAmenity[]
+
+  @@index([name])
+  @@index([reserveId])
+  @@index([propertyType])
+  @@index([isPremium])
+  @@map("properties")
+}
+
+model Review {
+  id                String            @id @default(cuid())
+  authorId          String            @map("author_id")
+  reserveId         String?           @map("reserve_id")
+  propertyId        String?           @map("property_id")
+  rating            Int
+  title             String?
+  content           String?
+  visitDate         DateTime?         @map("visit_date")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  isVerified        Boolean           @default(false) @map("is_verified")
+  isFlagged         Boolean           @default(false) @map("is_flagged")
+  moderationStatus  ModerationStatus  @default(PENDING) @map("moderation_status")
+  helpfulCount      Int               @default(0) @map("helpful_count")
+  aiSentiment       AISentiment?      @map("ai_sentiment")
+  aiSummary         String?           @map("ai_summary")
+
+  // Relationships
+  author            User              @relation(fields: [authorId], references: [id])
+  reserve           Reserve?          @relation(fields: [reserveId], references: [id])
+  property          Property?         @relation(fields: [propertyId], references: [id])
+
+  @@index([reserveId])
+  @@index([propertyId])
+  @@index([createdAt])
+  @@index([moderationStatus])
+  @@map("reviews")
+}
+
+model Activity {
+  id          String            @id @default(cuid())
+  name        String            @unique
+  category    ActivityCategory
+  description String?
+  icon        String?
+
+  // Relationships
+  reserves    ReserveActivity[]
+
+  @@map("activities")
+}
+
+model ReserveActivity {
+  reserveId            String   @map("reserve_id")
+  activityId           String   @map("activity_id")
+  isFeatured           Boolean  @default(false) @map("is_featured")
+  seasonAvailability   Json?    @map("season_availability")
+  additionalCost       Decimal? @map("additional_cost")
+  bookingRequired      Boolean  @default(false) @map("booking_required")
+
+  // Relationships
+  reserve              Reserve  @relation(fields: [reserveId], references: [id], onDelete: Cascade)
+  activity             Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@id([reserveId, activityId])
+  @@map("reserve_activities")
+}
+
+model Facility {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  category    FacilityCategory
+  icon        String?
+
+  // Relationships
+  reserves    ReserveFacility[]
+  properties  PropertyAmenity[]
+
+  @@map("facilities")
+}
+
+model ReserveFacility {
+  reserveId   String   @map("reserve_id")
+  facilityId  String   @map("facility_id")
+  isAvailable Boolean  @default(true) @map("is_available")
+  notes       String?
+
+  // Relationships
+  reserve     Reserve  @relation(fields: [reserveId], references: [id], onDelete: Cascade)
+  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@id([reserveId, facilityId])
+  @@map("reserve_facilities")
+}
+
+model PropertyAmenity {
+  propertyId  String   @map("property_id")
+  facilityId  String   @map("facility_id")
+  isAvailable Boolean  @default(true) @map("is_available")
+  notes       String?
+
+  // Relationships
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  facility    Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+
+  @@id([propertyId, facilityId])
+  @@map("property_amenities")
+}
+
+model ScrapedData {
+  id           String         @id @default(cuid())
+  reserveId    String         @map("reserve_id")
+  dataSource   DataSource     @map("data_source")
+  scrapedAt    DateTime       @default(now()) @map("scraped_at")
+  dataPayload  Json           @map("data_payload")
+  status       ScrapingStatus
+  errorMessage String?        @map("error_message")
+
+  // Relationships
+  reserve      Reserve        @relation(fields: [reserveId], references: [id], onDelete: Cascade)
+
+  @@index([reserveId])
+  @@index([scrapedAt])
+  @@map("scraped_data")
+}
+
+model Advertisement {
+  id               String        @id @default(cuid())
+  title            String
+  content          String
+  imageUrl         String        @map("image_url")
+  targetUrl        String        @map("target_url")
+  advertiserName   String        @map("advertiser_name")
+  placementType    PlacementType @map("placement_type")
+  targetAudience   Json?         @map("target_audience")
+  startDate        DateTime      @map("start_date")
+  endDate          DateTime      @map("end_date")
+  budgetDaily      Decimal       @map("budget_daily")
+  isActive         Boolean       @default(true) @map("is_active")
+  clickCount       Int           @default(0) @map("click_count")
+  impressionCount  Int           @default(0) @map("impression_count")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@map("advertisements")
+}
