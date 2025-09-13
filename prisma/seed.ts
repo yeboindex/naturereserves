@@ -114,7 +114,7 @@ async function seedFacilities() {
 
 async function seedSampleData() {
   // Create admin user
-  const adminUser = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@naturereserves.co.za' },
     update: {},
     create: {
